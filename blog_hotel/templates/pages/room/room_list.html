@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/content/style.css' %}">
+<h1>Liste des Chambres</h1>
+<a href="{% url 'content:room_create' %}" class="btn">Nouvelle chambre</a>
+{% if rooms %}
+    <ul>
+    {% for room in rooms %}
+        <li>
+            <strong>{{ room.name }}</strong><br>
+            Prix: {{ room.price }}€/nuit<br>
+            Description: {{ room.description|truncatewords:20 }}<br>
+            Catégorie: {{ room.category.name|default:"Aucune" }}<br>
+            Statut: {{ room.status.name|default:"Aucun" }}<br>
+            {% if room.photo %}
+                <img src="{{ room.photo.url }}" alt="{{ room.name }}" width="100">
+            {% else %}
+                <p>Pas de photo</p>
+            {% endif %}
+            <br>
+            <a href="{% url 'content:room_detail' room.pk %}">Détails</a> |
+            <a href="{% url 'content:room_update' room.pk %}">Modifier</a> |
+            <a href="{% url 'content:room_delete' room.pk %}">Supprimer</a>
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>Aucune chambre trouvée.</p>
+{% endif %}
+<script src="{% static 'js/content/script.js' %}"></script>
+{% endblock %}

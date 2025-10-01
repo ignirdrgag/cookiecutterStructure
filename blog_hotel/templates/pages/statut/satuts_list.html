@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/content/style.css' %}">
+<h1>Liste des Statuts</h1>
+<a href="{% url 'content:status_create' %}" class="btn">Nouveau statut</a>
+{% if statuses %}
+    <ul>
+    {% for status in statuses %}
+        <li>
+            {{ status.name }}<br>
+            <a href="{% url 'content:status_detail' status.pk %}">Détails</a> |
+            <a href="{% url 'content:status_update' status.pk %}">Modifier</a> |
+            <a href="{% url 'content:status_delete' status.pk %}">Supprimer</a>
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>Aucun statut trouvé.</p>
+{% endif %}
+<script src="{% static 'js/content/script.js' %}"></script>
+{% endblock %}

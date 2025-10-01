@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'services/css/style.css' %}">
+<h1>Mes Réservations</h1>
+<a href="{% url 'services:reservation_create' %}" class="btn">Nouvelle réservation</a>
+{% if reservations %}
+    <ul>
+    {% for reservation in reservations %}
+        <li>
+            Chambre: {{ reservation.room.name }}<br>
+            Du: {{ reservation.check_in }} au {{ reservation.check_out }}<br>
+            Créée le: {{ reservation.created_at }}<br>
+            <a href="{% url 'services:reservation_update' reservation.pk %}">Modifier</a> |
+            <a href="{% url 'services:reservation_delete' reservation.pk %}">Supprimer</a>
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>Aucune réservation trouvée.</p>
+{% endif %}
+<script src="{% static 'services/js/script.js' %}"></script>
+{% endblock %}

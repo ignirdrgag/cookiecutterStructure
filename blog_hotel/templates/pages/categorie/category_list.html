@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'content/css/style.css' %}">
+<h1>Liste des Catégories</h1>
+<a href="{% url 'content:category_create' %}" class="btn">Nouvelle catégorie</a>
+{% if categories %}
+    <ul>
+    {% for category in categories %}
+        <li>
+            {{ category.name }} - {{ category.description|truncatewords:20 }}<br>
+            <a href="{% url 'content:category_detail' category.pk %}">Détails</a> |
+            <a href="{% url 'content:category_update' category.pk %}">Modifier</a> |
+            <a href="{% url 'content:category_delete' category.pk %}">Supprimer</a>
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>Aucune catégorie trouvée.</p>
+{% endif %}
+<script src="{% static 'content/js/script.js' %}"></script>
+{% endblock %}

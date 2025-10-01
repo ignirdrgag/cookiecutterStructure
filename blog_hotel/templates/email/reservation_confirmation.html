@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; }
+        h1 { color: #007bff; }
+        .details { margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Confirmation de Réservation</h1>
+        <p>Bonjour {{ user.username }},</p>
+        <p>Votre réservation pour la chambre <strong>{{ reservation.room.name }}</strong> a été confirmée.</p>
+        <div class="details">
+            <p><strong>Date d'arrivée :</strong> {{ reservation.check_in }}</p>
+            <p><strong>Date de départ :</strong> {{ reservation.check_out }}</p>
+            <p><strong>Prix par nuit :</strong> {{ reservation.room.price }}€</p>
+        </div>
+        <p>Merci de choisir notre hôtel !</p>
+    </div>
+</body>
+</html>

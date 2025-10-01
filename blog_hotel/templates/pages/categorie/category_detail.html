@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'content/css/style.css' %}">
+<h1>Catégorie : {{ category.name }}</h1>
+<p><strong>Description :</strong> {{ category.description|default:"Aucune description" }}</p>
+<a href="{% url 'content:category_update' category.pk %}">Modifier</a> |
+<a href="{% url 'content:category_delete' category.pk %}">Supprimer</a> |
+<a href="{% url 'content:category_list' %}">Retour</a>
+<script src="{% static 'content/js/script.js' %}"></script>
+{% endblock %}

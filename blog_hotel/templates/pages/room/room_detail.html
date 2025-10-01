@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/content/style.css' %}">
+<h1>Chambre : {{ room.name }}</h1>
+<p><strong>Prix :</strong> {{ room.price }}€/nuit</p>
+<p><strong>Description :</strong> {{ room.description|default:"Aucune description" }}</p>
+<p><strong>Catégorie :</strong> {{ room.category.name|default:"Aucune" }}</p>
+<p><strong>Statut :</strong> {{ room.status.name|default:"Aucun" }}</p>
+{% if room.photo %}
+    <img src="{{ room.photo.url }}" alt="{{ room.name }}" width="200">
+{% else %}
+    <p>Pas de photo</p>
+{% endif %}
+<br>
+<a href="{% url 'content:room_update' room.pk %}">Modifier</a> |
+<a href="{% url 'content:room_delete' room.pk %}">Supprimer</a> |
+<a href="{% url 'content:room_list' %}">Retour</a>
+<script src="{% static 'js/content/script.js' %}"></script>
+{% endblock %}

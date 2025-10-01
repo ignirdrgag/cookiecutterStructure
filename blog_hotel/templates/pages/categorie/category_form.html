@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'content/css/style.css' %}">
+<h1>{% if form.instance.pk %}Modifier{% else %}Créer{% endif %} une Catégorie</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Enregistrer</button>
+</form>
+<a href="{% url 'content:category_list' %}">Retour</a>
+<script src="{% static 'content/js/script.js' %}"></script>
+{% endblock %}
