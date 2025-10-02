@@ -6,6 +6,7 @@ class Category(models.Model):
     description = models.TextField(blank=True, verbose_name=_("Description"))
 
     class Meta:
+        app_label = 'content'
         verbose_name = _("Catégorie")
         verbose_name_plural = _("Catégories")
 

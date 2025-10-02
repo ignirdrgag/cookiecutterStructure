@@ -1,22 +1,111 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
+{% block title %}{% trans "Liste des statuts" %}{% endblock %}
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/content/style.css' %}">
-<h1>Liste des Statuts</h1>
-<a href="{% url 'content:status_create' %}" class="btn">Nouveau statut</a>
-{% if statuses %}
-    <ul>
-    {% for status in statuses %}
-        <li>
-            {{ status.name }}<br>
-            <a href="{% url 'content:status_detail' status.pk %}">Détails</a> |
-            <a href="{% url 'content:status_update' status.pk %}">Modifier</a> |
-            <a href="{% url 'content:status_delete' status.pk %}">Supprimer</a>
-        </li>
-    {% endfor %}
-    </ul>
-{% else %}
-    <p>Aucun statut trouvé.</p>
-{% endif %}
-<script src="{% static 'js/content/script.js' %}"></script>
+<div class="content-container">
+    <h1>{% trans "Liste des statuts" %}</h1>
+
+    <!-- Barre de recherche et tri -->
+    <div class="search-bar">
+        <form method="get">
+            <input type="text" name="search" value="{{ search_query }}" placeholder="{% trans 'Rechercher un statut...' %}">
+            <select name="sort_by">
+                <option value="name" {% if sort_by == 'name' %}selected{% endif %}>{% trans "Nom (A-Z)" %}</option>
+                <option value="-name" {% if sort_by == '-name' %}selected{% endif %}>{% trans "Nom (Z-A)" %}</option>
+                <option value="created_at" {% if sort_by == 'created_at' %}selected{% endif %}>{% trans "Date de création (croissant)" %}</option>
+                <option value="-created_at" {% if sort_by == '-created_at' %}selected{% endif %}>{% trans "Date de création (décroissant)" %}</option>
+            </select>
+            <button type="submit">{% trans "Rechercher" %}</button>
+        </form>
+    </div>
+
+    <!-- Bouton pour ouvrir la modale de création -->
+    <button class="btn" onclick="openModal('createStatusModal')">{% trans "Nouveau statut" %}</button>
+
+    <!-- Liste des statuts -->
+    {% if statuses %}
+        <table>
+            <thead>
+                <tr>
+                    <th>{% trans "Nom" %}</th>
+                    <th>{% trans "Date de création" %}</th>
+                    <th>{% trans "Actions" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for status in statuses %}
+                    <tr>
+                        <td>{{ status.name }}</td>
+                        <td>{{ status.created_at|date:"Y-m-d H:i" }}</td>
+                        <td>
+                            <button class="btn btn-primary" onclick="openEditStatusModal('editStatusModal', '{{ status.pk }}')">{% trans "Modifier" %}</button>
+                            <button class="btn btn-danger" onclick="openDeleteStatusModal('deleteStatusModal', '{{ status.pk }}')">{% trans "Supprimer" %}</button>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <!-- Pagination -->
+        {% if statuses.has_other_pages %}
+            <div class="pagination">
+                {% if statuses.has_previous %}
+                    <a href="?page={{ statuses.previous_page_number }}&search={{ search_query }}&sort_by={{ sort_by }}">{% trans "Précédent" %} &laquo;</a>
+                {% endif %}
+                <span>{% trans "Page" %} {{ statuses.number }} {% trans "de" %} {{ statuses.paginator.num_pages }}</span>
+                {% if statuses.has_next %}
+                    <a href="?page={{ statuses.next_page_number }}&search={{ search_query }}&sort_by={{ sort_by }}">{% trans "Suivant" %} &raquo;</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    {% else %}
+        <p>{% trans "Aucun statut trouvé." %}</p>
+    {% endif %}
+
+    <!-- Modale de création -->
+    <div id="createStatusModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('createStatusModal')">&times;</span>
+            <h2>{% trans "Créer un statut" %}</h2>
+            <form id="createStatusForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create">
+                <label>{% trans "Nom" %}</label>
+                <input type="text" name="name" required>
+                <button type="submit">{% trans "Enregistrer" %}</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modale de modification -->
+    <div id="editStatusModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('editStatusModal')">&times;</span>
+            <h2>{% trans "Modifier un statut" %}</h2>
+            <form id="editStatusForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="edit">
+                <input type="hidden" name="status_id">
+                <label>{% trans "Nom" %}</label>
+                <input type="text" name="name" required>
+                <button type="submit">{% trans "Enregistrer" %}</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modale de suppression -->
+    <div id="deleteStatusModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('deleteStatusModal')">&times;</span>
+            <h2>{% trans "Supprimer un statut" %}</h2>
+            <form id="deleteStatusForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="status_id">
+                <p>{% trans "Êtes-vous sûr de vouloir supprimer ce statut ?" %}</p>
+                <button type="submit">{% trans "Oui, supprimer" %}</button>
+                <button type="button" onclick="closeModal('deleteStatusModal')">{% trans "Annuler" %}</button>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}

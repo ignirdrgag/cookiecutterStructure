@@ -1,23 +1,137 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
+{% block title %}{% trans "Liste des réservations" %}{% endblock %}
 {% block content %}
-<link rel="stylesheet" href="{% static 'services/css/style.css' %}">
-<h1>Mes Réservations</h1>
-<a href="{% url 'services:reservation_create' %}" class="btn">Nouvelle réservation</a>
-{% if reservations %}
-    <ul>
-    {% for reservation in reservations %}
-        <li>
-            Chambre: {{ reservation.room.name }}<br>
-            Du: {{ reservation.check_in }} au {{ reservation.check_out }}<br>
-            Créée le: {{ reservation.created_at }}<br>
-            <a href="{% url 'services:reservation_update' reservation.pk %}">Modifier</a> |
-            <a href="{% url 'services:reservation_delete' reservation.pk %}">Supprimer</a>
-        </li>
-    {% endfor %}
-    </ul>
-{% else %}
-    <p>Aucune réservation trouvée.</p>
-{% endif %}
-<script src="{% static 'services/js/script.js' %}"></script>
+<div class="content-container">
+    <h1>{% trans "Liste des réservations" %}</h1>
+
+    <!-- Barre de recherche et tri -->
+    <div class="search-bar">
+        <form method="get">
+            <input type="text" name="search" value="{{ search_query }}" placeholder="{% trans 'Rechercher une réservation...' %}">
+            <select name="sort_by">
+                <option value="check_in" {% if sort_by == 'check_in' %}selected{% endif %}>{% trans "Date d'arrivée (croissant)" %}</option>
+                <option value="-check_in" {% if sort_by == '-check_in' %}selected{% endif %}>{% trans "Date d'arrivée (décroissant)" %}</option>
+                <option value="check_out" {% if sort_by == 'check_out' %}selected{% endif %}>{% trans "Date de départ (croissant)" %}</option>
+                <option value="-check_out" {% if sort_by == '-check_out' %}selected{% endif %}>{% trans "Date de départ (décroissant)" %}</option>
+            </select>
+            <button type="submit">{% trans "Rechercher" %}</button>
+        </form>
+    </div>
+
+    <!-- Bouton pour ouvrir la modale de création -->
+    <button class="btn" onclick="openModal('createReservationModal')">{% trans "Nouvelle réservation" %}</button>
+
+    <!-- Liste des réservations -->
+    {% if reservations %}
+        <table>
+            <thead>
+                <tr>
+                    <th>{% trans "Chambre" %}</th>
+                    <th>{% trans "Date d'arrivée" %}</th>
+                    <th>{% trans "Date de départ" %}</th>
+                    <th>{% trans "Date de création" %}</th>
+                    <th>{% trans "Actions" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reservation in reservations %}
+                    <tr>
+                        <td>{{ reservation.room.name|default:"-" }}</td>
+                        <td>{{ reservation.check_in|date:"Y-m-d" }}</td>
+                        <td>{{ reservation.check_out|date:"Y-m-d" }}</td>
+                        <td>{{ reservation.created_at|date:"Y-m-d H:i" }}</td>
+                        <td>
+                            <button class="btn btn-primary" onclick="openEditReservationModal('editReservationModal', '{{ reservation.pk }}')">{% trans "Modifier" %}</button>
+                            <button class="btn btn-danger" onclick="openDeleteReservationModal('deleteReservationModal', '{{ reservation.pk }}')">{% trans "Supprimer" %}</button>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <!-- Pagination -->
+        {% if reservations.has_other_pages %}
+            <div class="pagination">
+                {% if reservations.has_previous %}
+                    <a href="?page={{ reservations.previous_page_number }}&search={{ search_query }}&sort_by={{ sort_by }}">{% trans "Précédent" %} &laquo;</a>
+                {% endif %}
+                <span>{% trans "Page" %} {{ reservations.number }} {% trans "de" %} {{ reservations.paginator.num_pages }}</span>
+                {% if reservations.has_next %}
+                    <a href="?page={{ reservations.next_page_number }}&search={{ search_query }}&sort_by={{ sort_by }}">{% trans "Suivant" %} &raquo;</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    {% else %}
+        <p>{% trans "Aucune réservation trouvée." %}</p>
+    {% endif %}
+
+    <!-- Modale de création -->
+    <div id="createReservationModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('createReservationModal')">&times;</span>
+            <h2>{% trans "Créer une réservation" %}</h2>
+            <form id="createReservationForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create">
+                <label>{% trans "Chambre" %}</label>
+                <select name="room" required>
+                    <option value="">{% trans "Sélectionner une chambre" %}</option>
+                    {% for room in rooms %}
+                        <option value="{{ room.pk }}">{{ room.name }}</option>
+                    {% endfor %}
+                </select>
+                <label>{% trans "Date d'arrivée" %}</label>
+                <input type="date" name="check_in" required>
+                <label>{% trans "Date de départ" %}</label>
+                <input type="date" name="check_out" required>
+                <button type="submit">{% trans "Enregistrer" %}</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modale de modification -->
+    <div id="editReservationModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('editReservationModal')">&times;</span>
+            <h2>{% trans "Modifier une réservation" %}</h2>
+            <form id="editReservationForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="edit">
+                <input type="hidden" name="reservation_id">
+                <label>{% trans "Chambre" %}</label>
+                <select name="room" required>
+                    <option value="">{% trans "Sélectionner une chambre" %}</option>
+                    {% for room in rooms %}
+                        <option value="{{ room.pk }}">{{ room.name }}</option>
+                    {% endfor %}
+                </select>
+                <label>{% trans "Date d'arrivée" %}</label>
+                <input type="date" name="check_in" required>
+                <label>{% trans "Date de départ" %}</label>
+                <input type="date" name="check_out" required>
+                <button type="submit">{% trans "Enregistrer" %}</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modale de suppression -->
+    <div id="deleteReservationModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('deleteReservationModal')">&times;</span>
+            <h2>{% trans "Supprimer une réservation" %}</h2>
+            <form id="deleteReservationForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="reservation_id">
+                <p>{% trans "Êtes-vous sûr de vouloir supprimer cette réservation ?" %}</p>
+                <button type="submit">{% trans "Oui, supprimer" %}</button>
+                <button type="button" onclick="closeModal('deleteReservationModal')">{% trans "Annuler" %}</button>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+  const reservationsData = {{ reservations_json|safe }};
+  console.log(reservationsData);
+</script>
 {% endblock %}

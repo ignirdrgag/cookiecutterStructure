@@ -1,22 +1,17 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views.reservations_view import (
-    ReservationListView,
-    ReservationCreateView,
-    ReservationUpdateView,
-    ReservationDeleteView,
-    ReservationViewSet
-)
+from .views.reservations_view import ReservationView, ReservationViewSet
 
 app_name = 'services'
 
+# Router DRF pour l'API
 router = DefaultRouter()
-router.register(r'reservations', ReservationViewSet)
+router.register(r'reservations', ReservationViewSet, basename='reservation')
 
 urlpatterns = [
-    path('', ReservationListView.as_view(), name='reservation_list'),
-    path('create/', ReservationCreateView.as_view(), name='reservation_create'),
-    path('<int:pk>/update/', ReservationUpdateView.as_view(), name='reservation_update'),
-    path('<int:pk>/delete/', ReservationDeleteView.as_view(), name='reservation_delete'),
-    path('api/', include(router.urls)),  # APIs à /services/api/reservations/
+    # Vue principale pour le rendu HTML
+    path('', ReservationView.as_view(), name='reservation_list'),
+    
+    # API REST
+    path('api/', include(router.urls)),
 ]

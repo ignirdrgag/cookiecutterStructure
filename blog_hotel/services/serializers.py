@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Reservation
+from blog_hotel.content.models import Room
 from blog_hotel.content.serializers import RoomSerializer
 
 class ReservationSerializer(serializers.ModelSerializer):

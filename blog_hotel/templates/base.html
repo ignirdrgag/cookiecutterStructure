@@ -1,0 +1,54 @@
+{% load static i18n %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% trans "Hôtel Réservation" %}{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/content/style.css' %}">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="header-logo">
+                <h1>{% trans "Hôtel Réservation" %}</h1>
+            </div>
+            <div class="header-user">
+                {% if user.is_authenticated %}
+                    <span>{% trans "Bienvenue," %} {{ user.username }}</span>
+                   
+                {% else %}
+                    <a href="{% url 'login' %}">{% trans "Connexion" %}</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-toggle">
+            <span class="hamburger" onclick="toggleSidebar()">&#9776;</span>
+        </div>
+        <nav class="sidebar-nav">
+            <ul>
+                <li><a href="{% url 'content:room_list' %}" {% if request.path == '/content/rooms/' %}class="active"{% endif %}>{% trans "Chambres" %}</a></li>
+                <li><a href="{% url 'content:category_list' %}" {% if request.path == '/content/categories/' %}class="active"{% endif %}>{% trans "Catégories" %}</a></li>
+                <li><a href="{% url 'content:status_list' %}" {% if request.path == '/content/statuses/' %}class="active"{% endif %}>{% trans "Statuts" %}</a></li>
+                <li><a href="{% url 'services:reservation_list' %}" {% if request.path == '/services/' %}class="active"{% endif %}>{% trans "Réservations" %}</a></li>
+                {% if user.is_staff %}
+                    <li><a href="{% url 'admin:index' %}">{% trans "Administration" %}</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Contenu principal -->
+    <main class="main-content">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <script src="{% static 'js/content/script.js' %}"></script>
+</body>
+</html>

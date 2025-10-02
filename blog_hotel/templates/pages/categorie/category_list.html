@@ -1,22 +1,117 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
+{% block title %}{% trans "Liste des catégories" %}{% endblock %}
 {% block content %}
-<link rel="stylesheet" href="{% static 'content/css/style.css' %}">
-<h1>Liste des Catégories</h1>
-<a href="{% url 'content:category_create' %}" class="btn">Nouvelle catégorie</a>
-{% if categories %}
-    <ul>
-    {% for category in categories %}
-        <li>
-            {{ category.name }} - {{ category.description|truncatewords:20 }}<br>
-            <a href="{% url 'content:category_detail' category.pk %}">Détails</a> |
-            <a href="{% url 'content:category_update' category.pk %}">Modifier</a> |
-            <a href="{% url 'content:category_delete' category.pk %}">Supprimer</a>
-        </li>
-    {% endfor %}
-    </ul>
-{% else %}
-    <p>Aucune catégorie trouvée.</p>
-{% endif %}
-<script src="{% static 'content/js/script.js' %}"></script>
+<div class="content-container">
+    <h1>{% trans "Liste des catégories" %}</h1>
+
+    <!-- Barre de recherche et tri -->
+    <div class="search-bar">
+        <form method="get">
+            <input type="text" name="search" value="{{ search_query }}" placeholder="{% trans 'Rechercher une catégorie...' %}">
+            <select name="sort_by">
+                <option value="name" {% if sort_by == 'name' %}selected{% endif %}>{% trans "Nom (A-Z)" %}</option>
+                <option value="-name" {% if sort_by == '-name' %}selected{% endif %}>{% trans "Nom (Z-A)" %}</option>
+                <option value="created_at" {% if sort_by == 'created_at' %}selected{% endif %}>{% trans "Date de création (croissant)" %}</option>
+                <option value="-created_at" {% if sort_by == '-created_at' %}selected{% endif %}>{% trans "Date de création (décroissant)" %}</option>
+            </select>
+            <button type="submit">{% trans "Rechercher" %}</button>
+        </form>
+    </div>
+
+    <!-- Bouton pour ouvrir la modale de création -->
+    <button class="btn" onclick="openModal('createCategoryModal')">{% trans "Nouvelle catégorie" %}</button>
+
+    <!-- Liste des catégories -->
+    {% if categories %}
+        <table>
+            <thead>
+                <tr>
+                    <th>{% trans "Nom" %}</th>
+                    <th>{% trans "Description" %}</th>
+                    <th>{% trans "Date de création" %}</th>
+                    <th>{% trans "Actions" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for category in categories %}
+                    <tr>
+                        <td>{{ category.name }}</td>
+                        <td>{{ category.description|default:"-" }}</td>
+                        <td>{{ category.created_at|date:"Y-m-d H:i" }}</td>
+                        <td>
+                            <button class="btn btn-primary" onclick="openEditCategoryModal('editCategoryModal', '{{ category.pk }}', '{{ category.name }}', '{{ category.description }}')">{% trans "Modifier" %}</button>
+                            <button class="btn btn-danger" onclick="openDeleteCategoryModal('deleteCategoryModal', '{{ category.pk }}')">{% trans "Supprimer" %}</button>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <!-- Pagination -->
+        {% if categories.has_other_pages %}
+            <div class="pagination">
+                {% if categories.has_previous %}
+                    <a href="?page={{ categories.previous_page_number }}&search={{ search_query }}&sort_by={{ sort_by }}">{% trans "Précédent" %} &laquo;</a>
+                {% endif %}
+                <span>{% trans "Page" %} {{ categories.number }} {% trans "de" %} {{ categories.paginator.num_pages }}</span>
+                {% if categories.has_next %}
+                    <a href="?page={{ categories.next_page_number }}&search={{ search_query }}&sort_by={{ sort_by }}">{% trans "Suivant" %} &raquo;</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    {% else %}
+        <p>{% trans "Aucune catégorie trouvée." %}</p>
+    {% endif %}
+
+    <!-- Modale de création -->
+    <div id="createCategoryModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('createCategoryModal')">&times;</span>
+            <h2>{% trans "Créer une catégorie" %}</h2>
+            <form id="createCategoryForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create">
+                <label>{% trans "Nom" %}</label>
+                <input type="text" name="name" required>
+                <label>{% trans "Description" %}</label>
+                <textarea name="description" rows="4"></textarea>
+                <button type="submit">{% trans "Enregistrer" %}</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modale de modification -->
+    <div id="editCategoryModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('editCategoryModal')">&times;</span>
+            <h2>{% trans "Modifier une catégorie" %}</h2>
+            <form id="editCategoryForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="edit">
+                <input type="hidden" name="category_id">
+                <label>{% trans "Nom" %}</label>
+                <input type="text" name="name" required>
+                <label>{% trans "Description" %}</label>
+                <textarea name="description" rows="4"></textarea>
+                <button type="submit">{% trans "Enregistrer" %}</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modale de suppression -->
+    <div id="deleteCategoryModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('deleteCategoryModal')">&times;</span>
+            <h2>{% trans "Supprimer une catégorie" %}</h2>
+            <form id="deleteCategoryForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="category_id">
+                <p>{% trans "Êtes-vous sûr de vouloir supprimer cette catégorie ?" %}</p>
+                <button type="submit">{% trans "Oui, supprimer" %}</button>
+                <button type="button" onclick="closeModal('deleteCategoryModal')">{% trans "Annuler" %}</button>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}

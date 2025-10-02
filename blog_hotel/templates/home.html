@@ -1,0 +1,15 @@
+
+{% load static i18n %}
+{% block title %}{% trans "Bienvenue à Hôtel Réservation" %}{% endblock %}
+{% block content %}
+<div class="content-container">
+    <h1>{% trans "Bienvenue à Hôtel Réservation" %}</h1>
+    <p>{% trans "Réservez votre séjour dans notre hôtel de luxe. Connectez-vous pour gérer vos réservations ou explorez nos chambres disponibles." %}</p>
+    {% if user.is_authenticated %}
+        <p>{% trans "Bonjour," %} {{ user.username }} ! <a href="{% url 'services:reservation_list' %}">{% trans "Voir mes réservations" %}</a></p>
+    {% else %}
+        <p><a href="{% url 'account_login' %}">{% trans "Se connecter" %}</a> | <a href="{% url 'account_signup' %}">{% trans "S'inscrire" %}</a></p>
+    {% endif %}
+    <a href="{% url 'services:reservation_list' %}" class="btn">{% trans "Réserver une chambre" %}</a>
+</div>
+{% endblock %}

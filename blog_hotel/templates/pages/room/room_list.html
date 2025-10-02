@@ -1,32 +1,163 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
+{% block title %}{% trans "Liste des chambres" %}{% endblock %}
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/content/style.css' %}">
-<h1>Liste des Chambres</h1>
-<a href="{% url 'content:room_create' %}" class="btn">Nouvelle chambre</a>
-{% if rooms %}
-    <ul>
-    {% for room in rooms %}
-        <li>
-            <strong>{{ room.name }}</strong><br>
-            Prix: {{ room.price }}€/nuit<br>
-            Description: {{ room.description|truncatewords:20 }}<br>
-            Catégorie: {{ room.category.name|default:"Aucune" }}<br>
-            Statut: {{ room.status.name|default:"Aucun" }}<br>
-            {% if room.photo %}
-                <img src="{{ room.photo.url }}" alt="{{ room.name }}" width="100">
-            {% else %}
-                <p>Pas de photo</p>
-            {% endif %}
-            <br>
-            <a href="{% url 'content:room_detail' room.pk %}">Détails</a> |
-            <a href="{% url 'content:room_update' room.pk %}">Modifier</a> |
-            <a href="{% url 'content:room_delete' room.pk %}">Supprimer</a>
-        </li>
-    {% endfor %}
-    </ul>
-{% else %}
-    <p>Aucune chambre trouvée.</p>
-{% endif %}
-<script src="{% static 'js/content/script.js' %}"></script>
+<div class="content-container">
+    <h1>{% trans "Liste des chambres" %}</h1>
+
+    <!-- Barre de recherche et tri -->
+    <div class="search-bar">
+        <form method="get">
+            <input type="text" name="search" value="{{ search_query }}" placeholder="{% trans 'Rechercher une chambre...' %}">
+            <select name="sort_by">
+                <option value="name" {% if sort_by == 'name' %}selected{% endif %}>{% trans "Nom (A-Z)" %}</option>
+                <option value="-name" {% if sort_by == '-name' %}selected{% endif %}>{% trans "Nom (Z-A)" %}</option>
+                <option value="price" {% if sort_by == 'price' %}selected{% endif %}>{% trans "Prix (croissant)" %}</option>
+                <option value="-price" {% if sort_by == '-price' %}selected{% endif %}>{% trans "Prix (décroissant)" %}</option>
+            </select>
+            <button type="submit">{% trans "Rechercher" %}</button>
+        </form>
+    </div>
+
+    <!-- Bouton pour ouvrir la modale de création -->
+    <button class="btn" onclick="openModal('createRoomModal')">{% trans "Nouvelle chambre" %}</button>
+
+    <!-- Liste des chambres -->
+    {% if rooms %}
+        <table>
+            <thead>
+                <tr>
+                    <th>{% trans "Nom" %}</th>
+                    <th>{% trans "Prix" %}</th>
+                    <th>{% trans "Catégorie" %}</th>
+                    <th>{% trans "Statut" %}</th>
+                    <th>{% trans "Photo" %}</th>
+                    <th>{% trans "Actions" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for room in rooms %}
+                    <tr>
+                        <td>{{ room.name }}</td>
+                        <td>{{ room.price }}€</td>
+                        <td>{{ room.category.name|default:"-" }}</td>
+                        <td>{{ room.status.name|default:"-" }}</td>
+                        <td>
+                            {% if room.photo %}
+                                <img src="{{ room.photo.url }}" alt="{{ room.name }}" width="50">
+                            {% else %}
+                                <img src="{% static 'content/images/default_image.png' %}" alt="No image" width="50">
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button class="btn btn-primary" onclick="openEditRoomModal('editRoomModal', '{{ room.pk }}')">{% trans "Modifier" %}</button>
+                            <button class="btn btn-danger" onclick="openDeleteRoomModal('deleteRoomModal', '{{ room.pk }}')">{% trans "Supprimer" %}</button>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <!-- Pagination -->
+        {% if rooms.has_other_pages %}
+            <div class="pagination">
+                {% if rooms.has_previous %}
+                    <a href="?page={{ rooms.previous_page_number }}&search={{ search_query }}&sort_by={{ sort_by }}">{% trans "Précédent" %} &laquo;</a>
+                {% endif %}
+                <span>{% trans "Page" %} {{ rooms.number }} {% trans "de" %} {{ rooms.paginator.num_pages }}</span>
+                {% if rooms.has_next %}
+                    <a href="?page={{ rooms.next_page_number }}&search={{ search_query }}&sort_by={{ sort_by }}">{% trans "Suivant" %} &raquo;</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    {% else %}
+        <p>{% trans "Aucune chambre trouvée." %}</p>
+    {% endif %}
+
+    <!-- Modale de création -->
+    <div id="createRoomModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('createRoomModal')">&times;</span>
+            <h2>{% trans "Créer une chambre" %}</h2>
+            <form id="createRoomForm" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create">
+                <label>{% trans "Nom" %}</label>
+                <input type="text" name="name" required>
+                <label>{% trans "Description" %}</label>
+                <textarea name="description" rows="4"></textarea>
+                <label>{% trans "Prix par nuit" %}</label>
+                <input type="number" name="price" step="0.01" required>
+                <label>{% trans "Photo" %}</label>
+                <input type="file" name="photo">
+                <label>{% trans "Catégorie" %}</label>
+                <select name="category">
+                    <option value="">{% trans "Sélectionner une catégorie" %}</option>
+                    {% for category in categories %}
+                        <option value="{{ category.pk }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+                <label>{% trans "Statut" %}</label>
+                <select name="status">
+                    <option value="">{% trans "Sélectionner un statut" %}</option>
+                    {% for status in statuses %}
+                        <option value="{{ status.pk }}">{{ status.name }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit">{% trans "Enregistrer" %}</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modale de modification -->
+    <div id="editRoomModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('editRoomModal')">&times;</span>
+            <h2>{% trans "Modifier une chambre" %}</h2>
+            <form id="editRoomForm" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="edit">
+                <input type="hidden" name="room_id">
+                <label>{% trans "Nom" %}</label>
+                <input type="text" name="name" required>
+                <label>{% trans "Description" %}</label>
+                <textarea name="description" rows="4"></textarea>
+                <label>{% trans "Prix par nuit" %}</label>
+                <input type="number" name="price" step="0.01" required>
+                <label>{% trans "Photo" %}</label>
+                <input type="file" name="photo">
+                <label>{% trans "Catégorie" %}</label>
+                <select name="category">
+                    <option value="">{% trans "Sélectionner une catégorie" %}</option>
+                    {% for category in categories %}
+                        <option value="{{ category.pk }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+                <label>{% trans "Statut" %}</label>
+                <select name="status">
+                    <option value="">{% trans "Sélectionner un statut" %}</option>
+                    {% for status in statuses %}
+                        <option value="{{ status.pk }}">{{ status.name }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit">{% trans "Enregistrer" %}</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modale de suppression -->
+    <div id="deleteRoomModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('deleteRoomModal')">&times;</span>
+            <h2>{% trans "Supprimer une chambre" %}</h2>
+            <form id="deleteRoomForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="room_id">
+                <p>{% trans "Êtes-vous sûr de vouloir supprimer cette chambre ?" %}</p>
+                <button type="submit">{% trans "Oui, supprimer" %}</button>
+                <button type="button" onclick="closeModal('deleteRoomModal')">{% trans "Annuler" %}</button>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}

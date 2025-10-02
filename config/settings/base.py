@@ -50,10 +50,10 @@ LOCALE_PATHS = [str(BASE_DIR / "locale")]
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": config("DB_NAME", " postgres"),
-        "USER": config("DB_USER", "postgres"),
-        "PASSWORD": config("DB_PASSWORD", "1234"),
-        "HOST": config("DB_HOST", "localhost"),
+        "NAME": config("DB_NAME"),
+        "USER": config("DB_USER"),
+        "PASSWORD": config("DB_PASSWORD"),
+        "HOST": config("DB_HOST", "localhost "),
         "PORT": config("DB_PORT", "5432"),
     },
 }
@@ -94,6 +94,7 @@ THIRD_PARTY_APPS = [
     "rest_framework.authtoken",
     "corsheaders",
     "drf_spectacular",
+    "django_extensions"
 ]
 
 LOCAL_APPS = [
@@ -363,3 +364,24 @@ SPECTACULAR_SETTINGS = {
 }
 # Your stuff...
 # ------------------------------------------------------------------------------
+
+# Email backend pour développement
+# -------------------------------
+# Affiche les emails dans la console (pas besoin de connexion SMTP)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'webmaster@example.com'
+
+# -------------------------------
+# Email backend réel (Gmail)
+# -------------------------------
+# Décommente cette section si tu veux envoyer de vrais emails
+# (Utiliser un mot de passe d'application Gmail)
+"""
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')  # Ton email
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')  # Mot de passe d'application
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+"""

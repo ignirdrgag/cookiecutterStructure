@@ -25,10 +25,7 @@ services:
     command: /start
 
   postgres:
-    build:
-      context: .
-      dockerfile: ./compose/production/postgres/Dockerfile
-    image: blog_hotel_production_postgres
+    image: postgres:17
     container_name: blog_hotel_local_postgres
     volumes:
       - blog_hotel_local_postgres_data:/var/lib/postgresql/data
@@ -37,13 +34,13 @@ services:
       - ./.envs/.local/.postgres
 
   mailpit:
-    image: docker.io/axllent/mailpit:latest
+    image: axllent/mailpit:latest
     container_name: blog_hotel_local_mailpit
     ports:
       - "8025:8025"
 
   redis:
-    image: docker.io/redis:6
+    image: redis:6
     container_name: blog_hotel_local_redis
     volumes:
       - blog_hotel_local_redis_data:/data
