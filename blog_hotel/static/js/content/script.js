@@ -1,369 +1,362 @@
+/**
+ * scripts.js - Gestion globale des modales, formulaires AJAX et interactions
+ * Compatible avec les templates Django pour rooms, categories, statuses, reservations
+ * Utilise JWT pour l'authentification et CSRF pour la sécurité
+ */
+
+// === UTILITAIRES GÉNÉRAUX ===
+/**
+ * Ouvre une modale en ajoutant/removant la classe 'hidden' (Tailwind/Flowbite compatible)
+ * @param {string} modalId - ID de la modale
+ */
 function openModal(modalId) {
-    document.getElementById(modalId).style.display = 'block';
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden'); // Empêche le scroll
+    } else {
+        console.warn(`Modale ${modalId} non trouvée`);
+    }
 }
 
+/**
+ * Ferme une modale
+ * @param {string} modalId - ID de la modale
+ */
 function closeModal(modalId) {
-    document.getElementById(modalId).style.display = 'none';
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+    } else {
+        console.warn(`Modale ${modalId} non trouvée`);
+    }
 }
 
+/**
+ * Toggle la sidebar (si présente)
+ */
 function toggleSidebar() {
     const sidebar = document.querySelector('.sidebar');
-    sidebar.classList.toggle('active');
-}
-
-function openEditRoomModal(modalId, rooms, roomId) {
-    const room = rooms.find(r => r.id === roomId);
-    if (room) {
-        const form = document.getElementById('editRoomForm');
-        form.querySelector('[name="room_id"]').value = room.id;
-        form.querySelector('[name="name"]').value = room.name;
-        form.querySelector('[name="description"]').value = room.description;
-        form.querySelector('[name="price"]').value = room.price;
-        form.querySelector('[name="category"]').value = room.category ? room.category : '';
-        form.querySelector('[name="status"]').value = room.status ? room.status : '';
-        openModal(modalId);
+    if (sidebar) {
+        sidebar.classList.toggle('active');
     }
 }
 
-function openDeleteRoomModal(modalId, id) {
-    document.getElementById('deleteRoomForm').querySelector('[name="room_id"]').value = id;
-    openModal(modalId);
+/**
+ * Récupère les en-têtes d'authentification (JWT + CSRF)
+ * @returns {Object} Headers pour fetch
+ */
+function getAuthHeaders() {
+    const token = localStorage.getItem('access_token');
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+    return {
+        'X-CSRFToken': csrfToken,
+        'Authorization': token ? `Bearer ${token}` : '',
+        'Content-Type': 'application/json' // Par défaut ; override pour FormData
+    };
 }
 
-function openEditCategoryModal(modalId, categories, categoryId) {
-    const category = categories.find(c => c.id === categoryId);
-    if (category) {
-        const form = document.getElementById('editCategoryForm');
-        form.querySelector('[name="category_id"]').value = category.id;
-        form.querySelector('[name="name"]').value = category.name;
-        form.querySelector('[name="description"]').value = category.description;
-        openModal(modalId);
+/**
+ * Affiche une notification (fallback sur alert si pas de système de toasts)
+ * @param {string} type - 'success' ou 'error'
+ * @param {string} message - Message à afficher
+ */
+function showNotification(type, message) {
+    // Si notificationManager est disponible (de vos scripts communs)
+    if (window.notificationManager) {
+        if (type === 'success') {
+            window.notificationManager.showSuccess(message);
+        } else {
+            window.notificationManager.showError(message);
+        }
+        return;
     }
+    // Fallback sur alert
+    alert(`${type.toUpperCase()}: ${message}`);
 }
 
-function openDeleteCategoryModal(modalId, id) {
-    document.getElementById('deleteCategoryForm').querySelector('[name="category_id"]').value = id;
-    openModal(modalId);
-}
+// === FONCTIONS PAR ENTITÉ ===
+// Note: Les fonctions openEdit* attendent maintenant les données via data-attributes ou globales.
+// Pour éviter les params globaux, on peut les passer en arguments ou fetcher via API si besoin.
 
-function openEditStatusModal(modalId, statuses, statusId) {
-    const status = statuses.find(s => s.id === statusId);
-    if (status) {
-        const form = document.getElementById('editStatusForm');
-        form.querySelector('[name="status_id"]').value = status.id;
-        form.querySelector('[name="name"]').value = status.name;
-        openModal(modalId);
+// Chambres
+function openEditRoomModal(modalId, roomId) {
+    // Récupère les données de la ligne du tableau via data-attributes (recommandé)
+    const row = document.querySelector(`[data-room-id="${roomId}"]`);
+    if (!row) {
+        showNotification('error', 'Chambre non trouvée');
+        return;
     }
-}
 
-function openDeleteStatusModal(modalId, id) {
-    document.getElementById('deleteStatusForm').querySelector('[name="status_id"]').value = id;
-    openModal(modalId);
-}
-
-function openEditReservationModal(modalId, reservations, reservationId) {
-    const reservation = reservations.find(r => r.id === reservationId);
-    if (reservation) {
-        const form = document.getElementById('editReservationForm');
-        form.querySelector('[name="reservation_id"]').value = reservation.id;
-        form.querySelector('[name="room"]').value = reservation.room ? reservation.room : '';
-        form.querySelector('[name="check_in"]').value = reservation.check_in;
-        form.querySelector('[name="check_out"]').value = reservation.check_out;
-        openModal(modalId);
+    const form = document.getElementById('editRoomForm');
+    if (!form) {
+        showNotification('error', 'Formulaire de modification non trouvé');
+        return;
     }
-}
 
-function openDeleteReservationModal(modalId, id) {
-    document.getElementById('deleteReservationForm').querySelector('[name="reservation_id"]').value = id;
+    // Remplit le formulaire avec les data-attributes de la ligne (ajoutez-les dans le template)
+    form.querySelector('[name="room_id"]').value = roomId;
+    form.querySelector('[name="name"]').value = row.dataset.name || '';
+    form.querySelector('[name="description"]').value = row.dataset.description || '';
+    form.querySelector('[name="price"]').value = row.dataset.price || '';
+    form.querySelector('[name="category"]').value = row.dataset.category || '';
+    form.querySelector('[name="status"]').value = row.dataset.status || '';
+
     openModal(modalId);
 }
 
+function openDeleteRoomModal(modalId, roomId) {
+    const form = document.getElementById('deleteRoomForm');
+    if (form) {
+        form.querySelector('[name="room_id"]').value = roomId;
+    }
+    openModal(modalId);
+}
+
+// Catégories
+function openEditCategoryModal(modalId, categoryId) {
+    const row = document.querySelector(`[data-category-id="${categoryId}"]`);
+    if (!row) {
+        showNotification('error', 'Catégorie non trouvée');
+        return;
+    }
+
+    const form = document.getElementById('editCategoryForm');
+    if (!form) {
+        showNotification('error', 'Formulaire de modification non trouvé');
+        return;
+    }
+
+    form.querySelector('[name="category_id"]').value = categoryId;
+    form.querySelector('[name="name"]').value = row.dataset.name || '';
+    form.querySelector('[name="description"]').value = row.dataset.description || '';
+
+    openModal(modalId);
+}
+
+function openDeleteCategoryModal(modalId, categoryId) {
+    const form = document.getElementById('deleteCategoryForm');
+    if (form) {
+        form.querySelector('[name="category_id"]').value = categoryId;
+    }
+    openModal(modalId);
+}
+
+// Statuts
+function openEditStatusModal(modalId, statusId) {
+    const row = document.querySelector(`[data-status-id="${statusId}"]`);
+    if (!row) {
+        showNotification('error', 'Statut non trouvé');
+        return;
+    }
+
+    const form = document.getElementById('editStatusForm');
+    if (!form) {
+        showNotification('error', 'Formulaire de modification non trouvé');
+        return;
+    }
+
+    form.querySelector('[name="status_id"]').value = statusId;
+    form.querySelector('[name="name"]').value = row.dataset.name || '';
+
+    openModal(modalId);
+}
+
+function openDeleteStatusModal(modalId, statusId) {
+    const form = document.getElementById('deleteStatusForm');
+    if (form) {
+        form.querySelector('[name="status_id"]').value = statusId;
+    }
+    openModal(modalId);
+}
+
+// Réservations
+function openEditReservationModal(modalId, reservationId) {
+    const row = document.querySelector(`[data-reservation-id="${reservationId}"]`);
+    if (!row) {
+        showNotification('error', 'Réservation non trouvée');
+        return;
+    }
+
+    const form = document.getElementById('editReservationForm');
+    if (!form) {
+        showNotification('error', 'Formulaire de modification non trouvé');
+        return;
+    }
+
+    form.querySelector('[name="reservation_id"]').value = reservationId;
+    form.querySelector('[name="room"]').value = row.dataset.room || '';
+    form.querySelector('[name="check_in"]').value = row.dataset.checkIn || '';
+    form.querySelector('[name="check_out"]').value = row.dataset.checkOut || '';
+
+    openModal(modalId);
+}
+
+function openDeleteReservationModal(modalId, reservationId) {
+    const form = document.getElementById('deleteReservationForm');
+    if (form) {
+        form.querySelector('[name="reservation_id"]').value = reservationId;
+    }
+    openModal(modalId);
+}
+
+// === GESTION DES ÉVÉNEMENTS (AJAX) ===
 document.addEventListener('DOMContentLoaded', () => {
-    // Gestion du formulaire de création de chambre
-    document.getElementById('createRoomForm')?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        try {
-            const response = await fetch('/content/rooms/', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                }
-            });
-            const data = await response.json();
-            if (data.success) {
-                alert(data.message);
-                window.location.reload();
-            } else {
-                alert(data.message + '\n' + JSON.stringify(data.errors));
-            }
-        } catch (error) {
-            alert('Erreur : ' + error.message);
+    // Fermeture des modales au clic extérieur ou Escape
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('fixed') && e.target.classList.contains('inset-0')) {
+            const modalId = e.target.id;
+            closeModal(modalId);
         }
     });
 
-    // Gestion du formulaire de modification de chambre
-    document.getElementById('editRoomForm')?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        try {
-            const response = await fetch('/content/rooms/', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                }
-            });
-            const data = await response.json();
-            if (data.success) {
-                alert(data.message);
-                window.location.reload();
-            } else {
-                alert(data.message + '\n' + JSON.stringify(data.errors));
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const openModals = document.querySelectorAll('.fixed:not(.hidden)');
+            if (openModals.length > 0) {
+                closeModal(openModals[openModals.length - 1].id);
             }
-        } catch (error) {
-            alert('Erreur : ' + error.message);
         }
     });
 
-    // Gestion du formulaire de suppression de chambre
-    document.getElementById('deleteRoomForm')?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        try {
-            const response = await fetch('/content/rooms/', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                }
-            });
-            const data = await response.json();
-            if (data.success) {
-                alert(data.message);
-                window.location.reload();
-            } else {
-                alert(data.message);
-            }
-        } catch (error) {
-            alert('Erreur : ' + error.message);
-        }
-    });
+    // Login (spécifique à la page de connexion)
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(loginForm);
+            const data = {
+                username: formData.get('username'),
+                password: formData.get('password')
+            };
 
-    // Gestion du formulaire de création de catégorie
-    document.getElementById('createCategoryForm')?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        try {
-            const response = await fetch('/content/categories/', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                }
-            });
-            const data = await response.json();
-            if (data.success) {
-                alert(data.message);
-                window.location.reload();
-            } else {
-                alert(data.message + '\n' + JSON.stringify(data.errors));
-            }
-        } catch (error) {
-            alert('Erreur : ' + error.message);
-        }
-    });
+            try {
+                const response = await fetch('/api/token/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getAuthHeaders()['X-CSRFToken']
+                    },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
 
-    // Gestion du formulaire de modification de catégorie
-    document.getElementById('editCategoryForm')?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        try {
-            const response = await fetch('/content/categories/', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                if (response.ok) {
+                    localStorage.setItem('access_token', result.access);
+                    localStorage.setItem('refresh_token', result.refresh);
+                    showNotification('success', '{% trans "Connexion réussie !" %}');
+                    // Redirection après délai pour UX
+                    setTimeout(() => {
+                        window.location.href = '/services/' || '/dashboard/';
+                    }, 1000);
+                } else {
+                    showNotification('error', result.detail || '{% trans "Identifiants invalides" %}');
                 }
-            });
-            const data = await response.json();
-            if (data.success) {
-                alert(data.message);
-                window.location.reload();
-            } else {
-                alert(data.message + '\n' + JSON.stringify(data.errors));
+            } catch (error) {
+                console.error('Login error:', error);
+                showNotification('error', '{% trans "Erreur de connexion" %}: ' + error.message);
             }
-        } catch (error) {
-            alert('Erreur : ' + error.message);
-        }
-    });
+        });
+    }
 
-    // Gestion du formulaire de suppression de catégorie
-    document.getElementById('deleteCategoryForm')?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        try {
-            const response = await fetch('/content/categories/', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                }
-            });
-            const data = await response.json();
-            if (data.success) {
-                alert(data.message);
-                window.location.reload();
-            } else {
-                alert(data.message);
-            }
-        } catch (error) {
-            alert('Erreur : ' + error.message);
-        }
-    });
+    // Fonction générique pour soumettre un formulaire AJAX (réutilisable)
+    async function submitFormAjax(form, url, method = 'POST') {
+        const formData = new FormData(form);
+        const headers = { ...getAuthHeaders() };
+        // Pas de Content-Type pour FormData (laisse le browser gérer multipart)
 
-    // Gestion du formulaire de création de statut
-    document.getElementById('createStatusForm')?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
         try {
-            const response = await fetch('/content/statuses/', {
-                method: 'POST',
+            const response = await fetch(url, {
+                method,
                 body: formData,
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                }
+                headers: headers
             });
             const data = await response.json();
-            if (data.success) {
-                alert(data.message);
-                window.location.reload();
-            } else {
-                alert(data.message + '\n' + JSON.stringify(data.errors));
-            }
-        } catch (error) {
-            alert('Erreur : ' + error.message);
-        }
-    });
 
-    // Gestion du formulaire de modification de statut
-    document.getElementById('editStatusForm')?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        try {
-            const response = await fetch('/content/statuses/', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                }
-            });
-            const data = await response.json();
             if (data.success) {
-                alert(data.message);
-                window.location.reload();
+                showNotification('success', data.message || '{% trans "Opération réussie" %}');
+                closeModal(form.closest('.fixed')?.id || ''); // Ferme la modale parente si applicable
+                setTimeout(() => window.location.reload(), 1500); // Recharge après succès
             } else {
-                alert(data.message + '\n' + JSON.stringify(data.errors));
+                showNotification('error', data.message || '{% trans "Erreur lors de l\'opération" %}');
+                if (data.errors) {
+                    console.error('Form errors:', data.errors);
+                    // Optionnel: Afficher les erreurs dans le formulaire
+                    Object.keys(data.errors).forEach(field => {
+                        const input = form.querySelector(`[name="${field}"]`);
+                        if (input) {
+                            input.classList.add('border-red-500');
+                            // Ajoutez un span d'erreur si besoin
+                        }
+                    });
+                }
             }
         } catch (error) {
-            alert('Erreur : ' + error.message);
+            console.error('AJAX error:', error);
+            showNotification('error', '{% trans "Erreur réseau" %}: ' + error.message);
         }
-    });
+    }
 
-    // Gestion du formulaire de suppression de statut
-    document.getElementById('deleteStatusForm')?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        try {
-            const response = await fetch('/content/statuses/', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                }
-            });
-            const data = await response.json();
-            if (data.success) {
-                alert(data.message);
-                window.location.reload();
-            } else {
-                alert(data.message);
-            }
-        } catch (error) {
-            alert('Erreur : ' + error.message);
-        }
-    });
+    // Event listeners pour les formulaires (seulement si présents)
+    const formHandlers = {
+        // Chambres
+        createRoomForm: { selector: '#createRoomForm', url: '/content/rooms/create_room/' },
+        editRoomForm: { selector: '#editRoomForm', handler: (form) => {
+            const roomId = form.querySelector('[name="room_id"]').value;
+            return `/content/rooms/${roomId}/edit_room/`;
+        }},
+        deleteRoomForm: { selector: '#deleteRoomForm', handler: (form) => {
+            const roomId = form.querySelector('[name="room_id"]').value;
+            return `/content/rooms/${roomId}/delete_room/`;
+        }},
 
-    // Gestion du formulaire de création de réservation
-    document.getElementById('createReservationForm')?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        try {
-            const response = await fetch('/services/', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                }
-            });
-            const data = await response.json();
-            if (data.success) {
-                alert(data.message);
-                window.location.reload();
-            } else {
-                alert(data.message + '\n' + JSON.stringify(data.errors));
-            }
-        } catch (error) {
-            alert('Erreur : ' + error.message);
-        }
-    });
+        // Catégories
+        createCategoryForm: { selector: '#createCategoryForm', url: '/content/categories/create_category/' },
+        editCategoryForm: { selector: '#editCategoryForm', handler: (form) => {
+            const categoryId = form.querySelector('[name="category_id"]').value;
+            return `/content/categories/${categoryId}/edit_category/`;
+        }},
+        deleteCategoryForm: { selector: '#deleteCategoryForm', handler: (form) => {
+            const categoryId = form.querySelector('[name="category_id"]').value;
+            return `/content/categories/${categoryId}/delete_category/`;
+        }},
 
-    // Gestion du formulaire de modification de réservation
-    document.getElementById('editReservationForm')?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        try {
-            const response = await fetch('/services/', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                }
-            });
-            const data = await response.json();
-            if (data.success) {
-                alert(data.message);
-                window.location.reload();
-            } else {
-                alert(data.message + '\n' + JSON.stringify(data.errors));
-            }
-        } catch (error) {
-            alert('Erreur : ' + error.message);
-        }
-    });
+        // Statuts
+        createStatusForm: { selector: '#createStatusForm', url: '/content/statuses/create_status/' },
+        editStatusForm: { selector: '#editStatusForm', handler: (form) => {
+            const statusId = form.querySelector('[name="status_id"]').value;
+            return `/content/statuses/${statusId}/edit_status/`;
+        }},
+        deleteStatusForm: { selector: '#deleteStatusForm', handler: (form) => {
+            const statusId = form.querySelector('[name="status_id"]').value;
+            return `/content/statuses/${statusId}/delete_status/`;
+        }},
 
-    // Gestion du formulaire de suppression de réservation
-    document.getElementById('deleteReservationForm')?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        try {
-            const response = await fetch('/services/', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        // Réservations
+        createReservationForm: { selector: '#createReservationForm', url: '/services/reservations/create_reservation/' },
+        editReservationForm: { selector: '#editReservationForm', handler: (form) => {
+            const reservationId = form.querySelector('[name="reservation_id"]').value;
+            return `/services/reservations/${reservationId}/edit_reservation/`;
+        }},
+        deleteReservationForm: { selector: '#deleteReservationForm', handler: (form) => {
+            const reservationId = form.querySelector('[name="reservation_id"]').value;
+            return `/services/reservations/${reservationId}/delete_reservation/`;
+        }}
+    };
+
+    // Attache les listeners
+    Object.entries(formHandlers).forEach(([key, config]) => {
+        const form = document.querySelector(config.selector);
+        if (form) {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                let url = config.url;
+                if (config.handler) {
+                    url = config.handler(form);
                 }
+                await submitFormAjax(form, url);
             });
-            const data = await response.json();
-            if (data.success) {
-                alert(data.message);
-                window.location.reload();
-            } else {
-                alert(data.message);
-            }
-        } catch (error) {
-            alert('Erreur : ' + error.message);
         }
     });
 });

@@ -12,7 +12,6 @@ from django.core.serializers.json import DjangoJSONEncoder
 
 class RoomView(LoginRequiredMixin, View):
     template_name = 'pages/room/room_list.html'
-
     def get(self, request, *args, **kwargs):
         try:
             search_query = request.GET.get('search', '')

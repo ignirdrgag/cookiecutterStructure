@@ -1,15 +1,552 @@
 
 {% load static i18n %}
-{% block title %}{% trans "Bienvenue à Hôtel Réservation" %}{% endblock %}
-{% block content %}
-<div class="content-container">
-    <h1>{% trans "Bienvenue à Hôtel Réservation" %}</h1>
-    <p>{% trans "Réservez votre séjour dans notre hôtel de luxe. Connectez-vous pour gérer vos réservations ou explorez nos chambres disponibles." %}</p>
-    {% if user.is_authenticated %}
-        <p>{% trans "Bonjour," %} {{ user.username }} ! <a href="{% url 'services:reservation_list' %}">{% trans "Voir mes réservations" %}</a></p>
-    {% else %}
-        <p><a href="{% url 'account_login' %}">{% trans "Se connecter" %}</a> | <a href="{% url 'account_signup' %}">{% trans "S'inscrire" %}</a></p>
-    {% endif %}
-    <a href="{% url 'services:reservation_list' %}" class="btn">{% trans "Réserver une chambre" %}</a>
-</div>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% trans "Hôtel Luxe - Système de Réservation" %}{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    {% load static i18n %}
+    <style>
+        :root {
+            --primary-color: #1a4b8c;
+            --secondary-color: #d4af37;
+            --accent-color: #2c6eb5;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --success-color: #28a745;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo span {
+            color: var(--secondary-color);
+        }
+
+        .logo i {
+            margin-right: 10px;
+            font-size: 28px;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+
+        nav ul li {
+            margin-left: 25px;
+        }
+
+        nav ul li a {
+            text-decoration: none;
+            color: var(--dark-color);
+            font-weight: 500;
+            transition: var(--transition);
+            padding: 5px 0;
+            position: relative;
+        }
+
+        nav ul li a:hover {
+            color: var(--primary-color);
+        }
+
+        nav ul li a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: var(--secondary-color);
+            transition: var(--transition);
+        }
+
+        nav ul li a:hover::after {
+            width: 100%;
+        }
+
+        .user-actions {
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            border-radius: var(--border-radius);
+            padding: 8px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            margin-left: 15px;
+        }
+
+        .btn-outline:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 10px 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-color);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary i {
+            margin-right: 8px;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(rgba(26, 75, 140, 0.8), rgba(26, 75, 140, 0.8)), url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80') center/cover no-repeat;
+            color: white;
+            padding: 100px 0;
+            text-align: center;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .hero p {
+            font-size: 20px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .hero-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .btn-secondary:hover {
+            background-color: #c19b25;
+            transform: translateY(-2px);
+        }
+
+        /* Rooms Preview */
+        .rooms-preview {
+            padding: 80px 0;
+            background-color: #f8f9fa;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .section-title h2 {
+            font-size: 36px;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .section-title p {
+            color: #6c757d;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .rooms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .room-card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .room-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .room-image {
+            height: 250px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .room-status {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: var(--success-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .room-content {
+            padding: 20px;
+        }
+
+        .room-content h3 {
+            font-size: 22px;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+        .room-features {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 15px 0;
+            color: #6c757d;
+            gap: 15px;
+        }
+
+        .room-features span {
+            display: flex;
+            align-items: center;
+        }
+
+        .room-features i {
+            margin-right: 5px;
+            color: var(--secondary-color);
+        }
+
+        .room-price {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 15px 0;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 60px 0 30px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-section h3 {
+            margin-bottom: 20px;
+            font-size: 18px;
+            color: var(--secondary-color);
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 10px;
+        }
+
+        .footer-section a {
+            color: #ddd;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-section a:hover {
+            color: white;
+        }
+
+        .footer-section p {
+            color: #ddd;
+            margin-bottom: 15px;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .social-links a {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #444;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .social-links a:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-3px);
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid #444;
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            nav ul {
+                margin-top: 15px;
+            }
+
+            .hero h1 {
+                font-size: 36px;
+            }
+
+            .hero p {
+                font-size: 18px;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .user-actions {
+                margin-top: 15px;
+            }
+
+            .room-image {
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="{% url 'home' %}" class="logo">
+                    <i class="fas fa-hotel"></i>
+                    Hôtel<span>Luxe</span>
+                </a>
+                <nav>
+                    <ul>
+                        <li><a href="{% url 'home' %}">{% trans "Accueil" %}</a></li>
+                        <li><a href="{% url 'content:room_list' %}">{% trans "Chambres" %}</a></li>
+                        <li><a href="#">{% trans "Services" %}</a></li>
+                        <li><a href="#">{% trans "À propos" %}</a></li>
+                        <li><a href="#">{% trans "Contact" %}</a></li>
+                    </ul>
+                </nav>
+                <div class="user-actions">
+                    {% if user.is_authenticated %}
+                        <a href="#" class="btn-outline">{% trans "Profil" %}</a>
+                        <a href="{% url 'account_logout' %}" class="btn-primary">{% trans "Déconnexion" %}</a>
+                    {% else %}
+                        <a href="{% url 'account_login' %}" class="btn-outline">{% trans "Connexion" %}</a>
+                        <a href="{% url 'account_login' %}?next={% url 'content:room_list' %}" class="btn-primary">
+                            <i class="fas fa-calendar-check"></i> {% trans "Réserver" %}
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>{% trans "Bienvenue à Hôtel Luxe" %}</h1>
+                <p>{% trans "Découvrez l'excellence d'un séjour inoubliable dans notre établissement 5 étoiles. Luxe, confort et service exceptionnel vous attendent." %}</p>
+                <div class="hero-buttons">
+                    <a href="{% if user.is_authenticated %}{% url 'content:room_list' %}{% else %}{% url 'account_login' %}?next={% url 'content:room_list' %}{% endif %}" class="btn-secondary">
+                        <i class="fas fa-calendar-check"></i> {% trans "Réserver maintenant" %}
+                    </a>
+                    <a href="{% url 'content:room_list' %}" class="btn-primary">
+                        <i class="fas fa-eye"></i> {% trans "Voir nos chambres" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Rooms Preview -->
+    <section class="rooms-preview">
+        <div class="container">
+            <div class="section-title">
+                <h2>{% trans "Nos Chambres Exclusives" %}</h2>
+                <p>{% trans "Découvrez notre sélection de chambres et suites conçues pour votre confort et votre bien-être." %}</p>
+            </div>
+            <div class="rooms-grid">
+                {% for room in rooms %}
+                    <div class="room-card">
+                        <div class="room-image" style="background-image: url('{% if room.photo %}{{ room.photo.url }}{% else %}{% static 'content/images/default_image.png' %}{% endif %}');">
+                            <span class="room-status">{{ room.status.name|default:"-" }}</span>
+                        </div>
+                        <div class="room-content">
+                            <h3>{{ room.name }}</h3>
+                            <div class="room-features">
+                                <span><i class="fas fa-tag"></i> {{ room.category.name|default:"-" }}</span>
+                                <span><i class="fas fa-ruler-combined"></i> {% trans "Taille non spécifiée" %}</span>
+                            </div>
+                            <p>{{ room.description|truncatewords:20|default:"-" }}</p>
+                            <div class="room-price">{{ room.price }}€ / {% trans "nuit" %}</div>
+                            <a href="{% if user.is_authenticated %}{% url 'content:reservation-create' %}?room_id={{ room.pk }}{% else %}{% url 'login' %}?next={% url 'content:reservation-create' %}?room_id={{ room.pk }}{% endif %}" class="btn-primary">
+                                <i class="fas fa-calendar-check"></i> {% trans "Réserver" %}
+                            </a>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p style="text-align: center; color: #6c757d;">{% trans "Aucune chambre disponible pour le moment." %}</p>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>{% trans "Hôtel Luxe" %}</h3>
+                    <p>{% trans "Votre destination de choix pour un séjour inoubliable. Luxe, confort et service exceptionnel." %}</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3>{% trans "Liens rapides" %}</h3>
+                    <ul>
+                        <li><a href="{% url 'home' %}">{% trans "Accueil" %}</a></li>
+                        <li><a href="{% url 'content:room_list' %}">{% trans "Nos chambres" %}</a></li>
+                        <li><a href="#">{% trans "Services" %}</a></li>
+                        <li><a href="#">{% trans "À propos" %}</a></li>
+                        <li><a href="#">{% trans "Contact" %}</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>{% trans "Services" %}</h3>
+                    <ul>
+                        <li><a href="#">{% trans "Restaurant" %}</a></li>
+                        <li><a href="#">{% trans "Spa & Bien-être" %}</a></li>
+                        <li><a href="#">{% trans "Salles de réunion" %}</a></li>
+                        <li><a href="#">{% trans "Événements" %}</a></li>
+                        <li><a href="#">{% trans "Transport" %}</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>{% trans "Contact" %}</h3>
+                    <ul>
+                        <li><i class="fas fa-map-marker-alt"></i> {% trans "123 Avenue de Luxe, Paris" %}</li>
+                        <li><i class="fas fa-phone"></i> {% trans "+33 1 23 45 67 89" %}</li>
+                        <li><i class="fas fa-envelope"></i> {% trans "contact@hotelluxe.com" %}</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; {% now "Y" %} {% trans "Hôtel Luxe. Tous droits réservés." %}</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

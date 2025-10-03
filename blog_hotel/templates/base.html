@@ -4,51 +4,1108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{% trans "Hôtel Réservation" %}{% endblock %}</title>
+    <title>{% block title %}{% trans "Hôtel Luxe - Système de Réservation" %}{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/content/style.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #0f172a;
+            --primary-dark: #020617;
+            --primary-light: #1e293b;
+            --secondary-color: #d4af37;
+            --secondary-dark: #b8941f;
+            --accent-color: #dc2626;
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --info-color: #0ea5e9;
+            --light-bg: #f8fafc;
+            --card-bg: #ffffff;
+            --sidebar-bg: #0f172a;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-light: #94a3b8;
+            --border-light: #e2e8f0;
+            --gradient-primary: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            --gradient-secondary: linear-gradient(135deg, #d4af37 0%, #b8941f 100%);
+            --gradient-accent: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-fast: all 0.15s ease;
+            --border-radius: 16px;
+            --border-radius-sm: 8px;
+            --border-radius-lg: 24px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Header Premium avec Glassmorphism */
+        .header {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .header-content {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--gradient-secondary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .logo-text {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 1.75rem;
+            background: linear-gradient(135deg, #ffffff 0%, var(--secondary-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-user {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .user-menu:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .user-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--gradient-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+            font-size: 1.1rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .login-btn {
+            background: var(--gradient-secondary);
+            color: white;
+            padding: 0.875rem 1.75rem;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        /* Sidebar Élégant */
+        .sidebar {
+            width: 300px;
+            background: var(--gradient-primary);
+            color: white;
+            position: fixed;
+            top: 80px;
+            left: 0;
+            bottom: 0;
+            overflow-y: auto;
+            transition: var(--transition);
+            z-index: 999;
+            box-shadow: var(--shadow-xl);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-toggle {
+            display: none;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sidebar-toggle .hamburger {
+            color: white;
+            font-size: 1.5rem;
+            transition: var(--transition);
+        }
+
+        .sidebar-nav {
+            padding: 2rem 0;
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .nav-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 0 2rem 1rem;
+            font-weight: 600;
+        }
+
+        .sidebar-nav ul {
+            list-style: none;
+        }
+
+        .sidebar-nav li {
+            margin: 0.5rem 1rem;
+        }
+
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            border-radius: var(--border-radius-sm);
+            transition: var(--transition);
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sidebar-nav a::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--secondary-color);
+            transform: scaleY(0);
+            transition: var(--transition);
+        }
+
+        .sidebar-nav a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar-nav a:hover::before {
+            transform: scaleY(1);
+        }
+
+        .sidebar-nav a.active {
+            background: rgba(212, 175, 55, 0.15);
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .sidebar-nav a.active::before {
+            transform: scaleY(1);
+        }
+
+        .sidebar-nav a i {
+            width: 20px;
+            text-align: center;
+            font-size: 1.2rem;
+            transition: var(--transition);
+        }
+
+        .sidebar-nav a:hover i {
+            transform: scale(1.1);
+            color: var(--secondary-color);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 300px;
+            margin-top: 80px;
+            padding: 2rem;
+            min-height: calc(100vh - 80px);
+            transition: var(--transition);
+        }
+
+        /* Dashboard Hero */
+        .dashboard-hero {
+            background: var(--gradient-primary);
+            color: white;
+            border-radius: var(--border-radius);
+            padding: 3rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .dashboard-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 200px;
+            height: 200px;
+            background: var(--gradient-secondary);
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.3;
+        }
+
+        .hero-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            line-height: 1.1;
+        }
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 2rem;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-lg);
+            transition: var(--transition);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-primary);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-2xl);
+        }
+
+        .stat-card.primary::before {
+            background: var(--gradient-primary);
+        }
+
+        .stat-card.success::before {
+            background: var(--success-color);
+        }
+
+        .stat-card.warning::before {
+            background: var(--warning-color);
+        }
+
+        .stat-card.accent::before {
+            background: var(--gradient-accent);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            background: var(--light-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .stat-trend {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            background: rgba(5, 150, 105, 0.1);
+            color: var(--success-color);
+        }
+
+        .stat-trend.down {
+            background: rgba(220, 38, 38, 0.1);
+            color: var(--accent-color);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        /* Content Cards */
+        .content-card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 2rem;
+            overflow: hidden;
+            transition: var(--transition);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .content-card:hover {
+            box-shadow: var(--shadow-xl);
+        }
+
+        .card-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--light-bg);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .card-title i {
+            color: var(--secondary-color);
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.875rem 1.75rem;
+            border-radius: var(--border-radius-sm);
+            font-weight: 600;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: var(--transition);
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .btn-secondary {
+            background: var(--light-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-secondary:hover {
+            background: white;
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        /* Messages System */
+        .messages-container {
+            position: fixed;
+            top: 100px;
+            right: 2rem;
+            z-index: 1000;
+            max-width: 400px;
+            animation: slideInRight 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .alert {
+            padding: 1.25rem 1.5rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow-xl);
+            border-left: 4px solid;
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            animation: slideInRight 0.5s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .alert::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 4px;
+        }
+
+        .alert-success {
+            border-left-color: var(--success-color);
+            color: var(--success-color);
+        }
+
+        .alert-error {
+            border-left-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        .alert-warning {
+            border-left-color: var(--warning-color);
+            color: var(--warning-color);
+        }
+
+        .alert-info {
+            border-left-color: var(--info-color);
+            color: var(--info-color);
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .sidebar {
+                width: 280px;
+            }
+            .main-content {
+                margin-left: 280px;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .sidebar-toggle {
+                display: flex;
+            }
+
+            .hero-title {
+                font-size: 2.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                padding: 0 1.5rem;
+            }
+            
+            .main-content {
+                padding: 1.5rem;
+            }
+            
+            .dashboard-hero {
+                padding: 2rem;
+            }
+            
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .card-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+            
+            .card-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header-content {
+                padding: 0 1rem;
+            }
+            
+            .main-content {
+                padding: 1rem;
+            }
+            
+            .user-details {
+                display: none;
+            }
+            
+            .logo-text {
+                font-size: 1.5rem;
+            }
+            
+            .btn {
+                padding: 0.75rem 1.25rem;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* Loading States */
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+            position: relative;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin: -10px 0 0 -10px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            background: var(--gradient-secondary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: var(--shadow-2xl);
+            cursor: pointer;
+            transition: var(--transition);
+            z-index: 100;
+            text-decoration: none;
+        }
+
+        .fab:hover {
+            transform: scale(1.1) rotate(90deg);
+            box-shadow: var(--shadow-xl);
+        }
+        .logout-btn.primary {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+    }
+
+    .logout-btn.primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(220, 38, 38, 0.4);
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    }
+
+    </style>
 </head>
 <body>
     <!-- Header -->
     <header class="header">
         <div class="header-content">
-            <div class="header-logo">
-                <h1>{% trans "Hôtel Réservation" %}</h1>
-            </div>
+            <a href="#" class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-hotel"></i>
+                </div>
+                <div class="logo-text">Hôtel Luxe</div>
+            </a>
+
             <div class="header-user">
                 {% if user.is_authenticated %}
-                    <span>{% trans "Bienvenue," %} {{ user.username }}</span>
-                   
+                    <div class="user-menu" onclick="toggleUserMenu()">
+                        <div class="user-avatar">
+                            {{ user.username|slice:":1"|upper }}
+                        </div>
+                        <div class="user-details">
+                            <div class="user-name">{{ user.username }}</div>
+                            <div class="user-role">
+                                {% if user.is_staff %}{% trans "Administrateur" %}{% else %}{% trans "Utilisateur" %}{% endif %}
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-down"></i>
+                         
+                    </div>
+                   <form method="post" action="{% url 'account_logout' %}" style="margin: 0;">
+                         {% csrf_token %}
+                        <button type="submit" class="logout-btn primary">
+                        <i class="fas fa-sign-out-alt"></i>
+                       {% trans "Déconnexion" %}
+                       </button>
+                   </form>
                 {% else %}
-                    <a href="{% url 'login' %}">{% trans "Connexion" %}</a>
+                    
                 {% endif %}
             </div>
         </div>
     </header>
 
     <!-- Sidebar -->
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
         <div class="sidebar-toggle">
+            <span>{% trans "Navigation" %}</span>
             <span class="hamburger" onclick="toggleSidebar()">&#9776;</span>
         </div>
         <nav class="sidebar-nav">
-            <ul>
-                <li><a href="{% url 'content:room_list' %}" {% if request.path == '/content/rooms/' %}class="active"{% endif %}>{% trans "Chambres" %}</a></li>
-                <li><a href="{% url 'content:category_list' %}" {% if request.path == '/content/categories/' %}class="active"{% endif %}>{% trans "Catégories" %}</a></li>
-                <li><a href="{% url 'content:status_list' %}" {% if request.path == '/content/statuses/' %}class="active"{% endif %}>{% trans "Statuts" %}</a></li>
-                <li><a href="{% url 'services:reservation_list' %}" {% if request.path == '/services/' %}class="active"{% endif %}>{% trans "Réservations" %}</a></li>
-                {% if user.is_staff %}
-                    <li><a href="{% url 'admin:index' %}">{% trans "Administration" %}</a></li>
-                {% endif %}
-            </ul>
+            <div class="nav-section">
+                <div class="nav-title">{% trans "Gestion Principale" %}</div>
+                <ul>
+                    <li>
+                        <a href="{% url 'content:room_list' %}" {% if request.path == '/content/rooms/' %}class="active"{% endif %}>
+                            <i class="fas fa-bed"></i>
+                            {% trans "Chambres" %}
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'content:category_list' %}" {% if request.path == '/content/categories/' %}class="active"{% endif %}>
+                            <i class="fas fa-tags"></i>
+                            {% trans "Catégories" %}
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'content:status_list' %}" {% if request.path == '/content/statuses/' %}class="active"{% endif %}>
+                            <i class="fas fa-info-circle"></i>
+                            {% trans "Statuts" %}
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'services:reservation_list' %}" {% if request.path == '/services/' %}class="active"{% endif %}>
+                            <i class="fas fa-calendar-check"></i>
+                            {% trans "Réservations" %}
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+            {% if user.is_staff %}
+            <div class="nav-section">
+                <div class="nav-title">{% trans "Administration" %}</div>
+                <ul>
+                    <li>
+                        <a href="{% url 'admin:index' %}">
+                            <i class="fas fa-cogs"></i>
+                            {% trans "Panneau d'Admin" %}
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i class="fas fa-chart-bar"></i>
+                            {% trans "Rapports" %}
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i class="fas fa-users"></i>
+                            {% trans "Utilisateurs" %}
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            {% endif %}
         </nav>
     </div>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            <div class="alert-content">
+                <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+                {{ message }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
     <!-- Contenu principal -->
     <main class="main-content">
         {% block content %}
+        <!-- Le contenu spécifique à chaque page sera inséré ici -->
+        <div class="dashboard-hero">
+            <h1 class="hero-title">{% trans "Bienvenue au Hôtel Prestige" %}</h1>
+            <p class="hero-subtitle">{% trans "Système de gestion hôtelière premium" %}</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card primary">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-bed"></i>
+                    </div>
+                    <div class="stat-trend">
+                        <i class="fas fa-arrow-up"></i>
+                        12%
+                    </div>
+                </div>
+                <div class="stat-value">42</div>
+                <div class="stat-label">{% trans "Chambres Disponibles" %}</div>
+            </div>
+            
+            <div class="stat-card success">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="stat-trend">
+                        <i class="fas fa-arrow-up"></i>
+                        8%
+                    </div>
+                </div>
+                <div class="stat-value">156</div>
+                <div class="stat-label">{% trans "Réservations Actives" %}</div>
+            </div>
+            
+            <div class="stat-card warning">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-trend down">
+                        <i class="fas fa-arrow-down"></i>
+                        3%
+                    </div>
+                </div>
+                <div class="stat-value">12</div>
+                <div class="stat-label">{% trans "En Attente" %}</div>
+            </div>
+            
+            <div class="stat-card accent">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="stat-trend">
+                        <i class="fas fa-arrow-up"></i>
+                        15%
+                    </div>
+                </div>
+                <div class="stat-value">84%</div>
+                <div class="stat-label">{% trans "Taux d'Occupation" %}</div>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="fas fa-compass"></i>
+                    {% trans "Navigation Rapide" %}
+                </h2>
+                <div class="card-actions">
+                    <a href="{% url 'services:reservation_list' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        {% trans "Nouvelle Réservation" %}
+                    </a>
+                </div>
+            </div>
+            <div style="padding: 2rem;">
+                <p>{% trans "Utilisez le menu de gauche pour naviguer entre les différentes sections de gestion de votre établissement." %}</p>
+            </div>
+        </div>
         {% endblock %}
     </main>
 
+    <!-- Floating Action Button -->
+    <a href="{% url 'services:reservation_list' %}" class="fab">
+        <i class="fas fa-plus"></i>
+    </a>
+
+    <!-- Scripts Django -->
     <script src="{% static 'js/content/script.js' %}"></script>
+    
+    <!-- Scripts personnalisés -->
+    <script>
+        // Gestion du sidebar responsive
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        }
+
+        // Gestion du menu utilisateur
+        function toggleUserMenu() {
+            // Implémentation du dropdown utilisateur
+            console.log('Menu utilisateur cliqué');
+        }
+
+        // Fermer le sidebar en cliquant à l'extérieur sur mobile
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const isMobile = window.innerWidth <= 1024;
+            
+            if (isMobile && sidebar.classList.contains('active')) {
+                if (!sidebar.contains(event.target) && !event.target.closest('.sidebar-toggle')) {
+                    sidebar.classList.remove('active');
+                }
+            }
+        });
+
+        // Gestion des messages flash
+        function initMessages() {
+            const messages = document.querySelectorAll('.alert');
+            messages.forEach((message, index) => {
+                setTimeout(() => {
+                    message.style.transition = 'all 0.5s ease';
+                    message.style.opacity = '0';
+                    message.style.transform = 'translateX(100%)';
+                    setTimeout(() => message.remove(), 500);
+                }, 5000 + (index * 500));
+            });
+        }
+
+        // Gestion des états de chargement
+        document.addEventListener('submit', function(e) {
+            const form = e.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            
+            if (submitBtn && !submitBtn.classList.contains('no-loading')) {
+                submitBtn.classList.add('loading');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.dataset.originalText = originalText;
+                submitBtn.innerHTML = '<i class="fas fa-spinner"></i> ' + originalText;
+            }
+        });
+
+        // Animation au scroll
+        function initScrollAnimations() {
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Observer les éléments animables
+            const animatedElements = document.querySelectorAll('.stat-card, .content-card');
+            animatedElements.forEach(el => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(20px)';
+                el.style.transition = 'all 0.6s ease';
+                observer.observe(el);
+            });
+        }
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            initMessages();
+            initScrollAnimations();
+            
+            // Ajouter des classes actives basées sur l'URL actuelle
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.sidebar-nav a');
+            
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active');
+                }
+            });
+        });
+
+        // Gestion responsive du sidebar
+        window.addEventListener('resize', function() {
+            const sidebar = document.getElementById('sidebar');
+            if (window.innerWidth > 1024) {
+                sidebar.classList.remove('active');
+            }
+        });
+
+        // Effet de parallaxe pour le hero
+        window.addEventListener('scroll', function() {
+            const hero = document.querySelector('.dashboard-hero');
+            if (hero) {
+                const scrolled = window.pageYOffset;
+                const rate = scrolled * -0.5;
+                hero.style.transform = `translateY(${rate}px)`;
+            }
+        });
+    </script>
+
+    {% block extra_js %}
+    <!-- Scripts supplémentaires pour les pages enfants -->
+    {% endblock %}
 </body>
 </html>
